@@ -9,7 +9,6 @@ click==8.0.3
 colorama==0.4.4
 cryptography==3.4.8
 distro==1.7.0
-distro-info==1.1+ubuntu0.2
 exceptiongroup==1.2.0
 fastapi==0.109.0
 fasteners==0.14.1
