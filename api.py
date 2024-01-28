@@ -1,5 +1,6 @@
 import io
 import json
+import asyncio
 import os
 from typing import List
 import PIL.Image
@@ -16,24 +17,41 @@ app = FastAPI()
 
 @app.websocket('/ws')
 async def websocket_endpoint(websocket: WebSocket):
-  await websocket.accept()
+    await websocket.accept()
 
-  while True:
-    message = await websocket.receive()
+    while True:
+        try:
+            message = await websocket.receive_text()
 
-    if isinstance(message, bytes):
-      data = json.loads(message.decode())
-      message = data['text']
-      img_bytes = bytes(data['bytes'])
-      img = PIL.Image.open(io.BytesIO(img_bytes))
-      respose = chat.send_message([message, img], stream=True)
-    else:
-      if message == '<FIN>!':
-        await websocket.close()
-        break
+            # Processar a mensagem recebida aqui
+            # Supondo que message seja um JSON com uma chave 'text'
+            data = json.loads(message)
+            user_message = data['text']
 
-    response = chat.send_message([message], stream = True)
-  
-  for chunk in response:
-    await websocket.send_text(chunk.text)
-  await websocket.send_text('<FIN>')
+            # Enviar a mensagem para a API de chat e aguardar a resposta
+            response = chat.send_message([user_message], stream=True)
+
+            # Enviar a resposta de volta ao WebSocket
+            for chunk in response:
+                await websocket.send_text(chunk.text)
+
+        except json.JSONDecodeError:
+            # Tratar o erro de decodificação JSON
+            await websocket.send_text("Erro de formato de mensagem.")
+        except asyncio.CancelledError:
+            # Tratar a desconexão do WebSocket
+            break
+        except Exception as e:
+            # Tratar outros erros
+            await websocket.send_text(f"Erro no servidor: {str(e)}")
+
+    await websocket.close()
+
+@app.get('/fetch-messages', response_model=List[dict])
+async def fetch_messages():
+  return [{'role': message.role, 'text': message.parts[0].text} for message in chat.history]
+
+if __name__ == '__main__':
+  import uvicorn
+
+  uvicorn.run(app, host='127.0.0.1', port=8000)
