@@ -8,6 +8,7 @@ chardet==4.0.0
 click==8.0.3
 colorama==0.4.4
 cryptography==3.4.8
+# cython_sources==0.4
 dbus-python==1.2.18
 distro==1.7.0
 exceptiongroup==1.2.0
@@ -62,7 +63,7 @@ python-dateutil==2.8.1
 python-dotenv==1.0.1
 pytz==2022.1
 pyxdg==0.27
-PyYAML==5.4.1
+PyYAML==5.3.1
 reportlab==3.6.8
 requests==2.25.1
 rsa==4.9
